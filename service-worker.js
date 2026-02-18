@@ -1,21 +1,18 @@
-const CACHE_NAME = "translator-pwa-v1";
+const CACHE_NAME = "translator-pwa-v2";
 
 const ASSETS = [
   "./",
   "./index.html",
+  "./style.css",
+  "./app.js",
   "./manifest.json",
   "./service-worker.js",
   "./icon-192.png",
   "./icon-512.png"
-  // If you have separate files, add them too:
-  // "./style.css",
-  // "./app.js"
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
   self.skipWaiting();
 });
 

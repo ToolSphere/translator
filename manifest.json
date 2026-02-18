@@ -1,6 +1,6 @@
 {
   "name": "Cross Translator Prototype",
-  "short_name": "Translator",
+  "short_name": "TranslatorX",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f4f6f8",

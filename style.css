@@ -1,44 +1,32 @@
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  padding: 20px;
+body{font-family:Arial,sans-serif;background:#f4f6f8;padding:20px}
+.card{max-width:980px;margin:auto;background:#fff;padding:20px;border-radius:12px;border:1px solid #ccc}
+h2{margin:0 0 6px}
+.small{font-size:13px;color:#555;margin-top:6px}
+label{font-weight:700;margin-top:12px;display:block}
+select,textarea,button{width:100%;padding:10px;font-size:16px;margin-top:6px;border-radius:8px;border:1px solid #ccc;box-sizing:border-box}
+textarea{height:120px}
+button{cursor:pointer}
+.output{margin-top:10px;background:#fafafa;padding:12px;border-radius:8px;border:1px solid #ccc;min-height:90px;white-space:pre-wrap}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.col{flex:1;min-width:240px}
+.btnRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.btnRow button{width:auto;flex:1;min-width:160px}
+.pill{display:inline-block;padding:4px 8px;border:1px solid #ddd;border-radius:999px;background:#fafafa;margin-top:8px}
+.warn{color:#8a5a00}
+.ok{color:#0b6b2b}
+.linkBtn{border:none;background:transparent;color:#0b57d0;padding:0;margin-top:8px;text-decoration:underline;cursor:pointer}
+
+/* modal */
+#tutorialModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);padding:20px}
+#tutorialModal .box{max-width:720px;margin:10vh auto;background:#fff;border-radius:12px;border:1px solid #ddd;padding:18px}
+#tutorialModal h3{margin:0 0 10px}
+#tutorialModal ul{margin:0 0 12px;padding-left:18px}
+#tutorialModal button{width:auto}
+
+/* keyboard-style suggestion chips */
+#suggestBar{display:none;gap:8px;flex-wrap:wrap;margin-top:8px}
+.schip{
+  width:auto;border:1px solid #ddd;background:#fff;border-radius:999px;
+  padding:8px 12px;font-size:14px;cursor:pointer
 }
-
-.card {
-  max-width: 900px;
-  margin: auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-}
-
-h2 { margin-top: 0; }
-
-select, textarea {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  margin-top: 8px;
-  box-sizing: border-box;
-}
-
-textarea { height: 120px; }
-
-.output {
-  margin-top: 10px;
-  background: #f4f6f8;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  min-height: 80px;
-  white-space: pre-wrap;
-}
-
-.small {
-  font-size: 13px;
-  color: #555;
-  margin-top: 6px;
-}
-
-.hint { color: #444; }
+.schip:hover{background:#f0f4ff;border-color:#c7d2fe}
