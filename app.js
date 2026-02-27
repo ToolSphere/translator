@@ -184,7 +184,8 @@ const miss = document.getElementById("missingBox");
 const pronBox = document.getElementById("pronBox");
 const suggestBox = document.getElementById("suggestBox");
 const suggestBar = document.getElementById("suggestBar");
-
+const onlineToggle = document.getElementById("onlineToggle");
+const onlineStatus = document.getElementById("onlineStatus");
 const senseArea = document.getElementById("senseArea");
 const senseSelect = document.getElementById("senseSelect");
 const senseHint = document.getElementById("senseHint");
@@ -230,7 +231,22 @@ copyBtn.onclick = async () => {
     alert("Copy failed. Browser permission issue.");
   }
 };
+async function googleFallbackTranslate(text, sl, tl) {
+  const url = new URL("https://translate.googleapis.com/translate_a/single");
+  url.searchParams.set("client", "gtx");
+  url.searchParams.set("sl", sl);
+  url.searchParams.set("tl", tl);
+  url.searchParams.set("dt", "t");
+  url.searchParams.set("q", text);
 
+  const res = await fetch(url.toString(), { method: "GET" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  const data = await res.json();
+  // data[0] is an array of segments: [[translated, original, ...], ...]
+  const translated = (data?.[0] || []).map((seg) => seg?.[0]).filter(Boolean).join("");
+  return translated || "";
+}
 function init() {
   srcSel.innerHTML = Object.entries(LANGS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
   srcSel.value = "fil";
@@ -376,7 +392,7 @@ function suggestIfAny(src, text) {
 }
 
 // ================= TRANSLATION ENGINE =================
-function translate() {
+async function translate() {
   const src = srcSel.value,
     tgt = tgtSel.value;
   const text = norm(input.value);
@@ -388,8 +404,10 @@ function translate() {
   if (!text) {
     output.innerText = "Translation will appear here…";
     miss.innerText = "";
+    if (onlineStatus) onlineStatus.innerText = "";
     return;
   }
+
 
   const missing = new Set();
 
@@ -421,6 +439,26 @@ function translate() {
   output.innerText = out;
   miss.innerText = missing.size ? `Not found: ${[...missing].join(", ")}` : "";
   setPron(tgt, out);
+
+  // Online fallback if enabled + missing words exist
+if (onlineToggle && onlineToggle.checked && missing.size) {
+  onlineStatus.innerHTML = `<span class="warn">Online fallback:</span> translating full input…`;
+  try {
+    const online = await googleFallbackTranslate(text, src, tgt);
+    if (online) {
+      output.innerText = online;
+      miss.innerText = "";
+      pronBox.innerText = "";
+      onlineStatus.innerHTML = `<span class="ok">Online fallback used.</span>`;
+      return;
+    }
+    onlineStatus.innerHTML = `<span class="warn">Online fallback:</span> got empty result.`;
+  } catch (e) {
+    onlineStatus.innerHTML = `<span class="warn">Online fallback failed:</span> ${e.message}`;
+  }
+} else {
+  if (onlineStatus) onlineStatus.innerText = "";
+}
 }
 
 function translateChunk(src, tgt, text, missing) {
