@@ -184,12 +184,10 @@ const miss = document.getElementById("missingBox");
 const pronBox = document.getElementById("pronBox");
 const suggestBox = document.getElementById("suggestBox");
 const suggestBar = document.getElementById("suggestBar");
-const onlineToggle = document.getElementById("onlineToggle");
-const onlineStatus = document.getElementById("onlineStatus");
 const senseArea = document.getElementById("senseArea");
 const senseSelect = document.getElementById("senseSelect");
 const senseHint = document.getElementById("senseHint");
-
+const onlineStatus = document.getElementById("onlineStatus");
 const clearBtn = document.getElementById("clearBtn");
 const copyBtn = document.getElementById("copyBtn");
 const helpBtn = document.getElementById("helpBtn");
@@ -246,6 +244,18 @@ async function googleFallbackTranslate(text, sl, tl) {
   // data[0] is an array of segments: [[translated, original, ...], ...]
   const translated = (data?.[0] || []).map((seg) => seg?.[0]).filter(Boolean).join("");
   return translated || "";
+}
+function shouldAutoFallback(inputText, dictOut, missing) {
+  // fallback only if dictionary didn't fully translate
+  if (!inputText) return false;
+
+  // If there are missing tokens, it's definitely incomplete
+  if (missing && missing.size) return true;
+
+  // If output is identical to input, dictionary probably didn't help
+  if (norm(dictOut) === norm(inputText)) return true;
+
+  return false;
 }
 function init() {
   srcSel.innerHTML = Object.entries(LANGS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
@@ -431,7 +441,24 @@ async function translate() {
       output.innerText = finalOut;
       miss.innerText = missing.size ? `Not found: ${[...missing].join(", ")}` : "";
       setPron(tgt, finalOut);
+      // ✅ Auto fallback for templates too
+if (shouldAutoFallback(text, finalOut, missing)) {
+  if (onlineStatus) onlineStatus.innerHTML = `<span class="warn">Auto online:</span> translating…`;
+  try {
+    const online = await googleFallbackTranslate(text, src, tgt);
+    if (online) {
+      output.innerText = online;
+      miss.innerText = "";
+      pronBox.innerText = "";
+      if (onlineStatus) onlineStatus.innerHTML = `<span class="ok">Auto online used.</span>`;
       return;
+    }
+  } catch (e) {
+    if (onlineStatus) onlineStatus.innerHTML = `<span class="warn">Auto online failed:</span> ${e.message}`;
+  }
+}
+if (onlineStatus) onlineStatus.innerText = "";
+return;
     }
   }
 
@@ -439,7 +466,27 @@ async function translate() {
   output.innerText = out;
   miss.innerText = missing.size ? `Not found: ${[...missing].join(", ")}` : "";
   setPron(tgt, out);
+// ✅ AUTO online fallback (no checkbox)
+if (shouldAutoFallback(text, out, missing)) {
+  if (onlineStatus) onlineStatus.innerHTML = `<span class="warn">Auto online:</span> translating…`;
+  try {
+    const online = await googleFallbackTranslate(text, src, tgt);
+    if (online) {
+      output.innerText = online;
 
+      // since online handled it, clear dictionary missing/pron
+      miss.innerText = "";
+      pronBox.innerText = "";
+      if (onlineStatus) onlineStatus.innerHTML = `<span class="ok">Auto online used.</span>`;
+      return;
+    }
+    if (onlineStatus) onlineStatus.innerHTML = `<span class="warn">Auto online:</span> empty result.`;
+  } catch (e) {
+    if (onlineStatus) onlineStatus.innerHTML = `<span class="warn">Auto online failed:</span> ${e.message}`;
+  }
+} else {
+  if (onlineStatus) onlineStatus.innerText = "";
+}
   // Online fallback if enabled + missing words exist
 if (onlineToggle && onlineToggle.checked && missing.size) {
   onlineStatus.innerHTML = `<span class="warn">Online fallback:</span> translating full input…`;
@@ -511,6 +558,10 @@ srcSel.onchange = () => {
   translate();
 };
 tgtSel.onchange = translate;
-input.oninput = translate;
+let tmr = null;
+input.oninput = () => {
+  clearTimeout(tmr);
+  tmr = setTimeout(() => translate(), 350);
+};
 
 init();
